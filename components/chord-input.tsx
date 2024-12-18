@@ -10,38 +10,13 @@ import { Card } from "./ui/card"
 import { ChordParser } from "@/lib/theory/parser"
 import { cn } from "@/lib/utils"
 
-interface ChordInputProps {
-  chordProgression: string[]
-  setChordProgression: (chords: string[]) => void
-}
+import { useProgression } from "@/hooks/useProgression"
 
-export function ChordInput({ chordProgression, setChordProgression }: ChordInputProps) {
+export function ChordInput() {
+  const { chords: chordProgression, addChord } = useProgression()
   const [mode, setMode] = useState<"visual" | "text">("visual")
   const [currentChord, setCurrentChord] = useState("")
-  const [isInputValid, setIsInputValid] = useState(true)
 
-  const validateChord = (chord: string): boolean => {
-    if (!chord.trim()) return true
-    try {
-      ChordParser.parse(chord)
-      return true
-    } catch (error) {
-      return false
-    }
-  }
-
-  const addChord = (chord: string = currentChord) => {
-    const trimmedChord = chord.trim()
-    if (trimmedChord && validateChord(trimmedChord)) {
-      setChordProgression([...chordProgression, trimmedChord])
-      setCurrentChord("")
-      setIsInputValid(true)
-    }
-  }
-
-  const removeChord = (index: number) => {
-    setChordProgression(chordProgression.filter((_, i) => i !== index))
-  }
 
   return (
     <div className="space-y-6">
@@ -57,47 +32,42 @@ export function ChordInput({ chordProgression, setChordProgression }: ChordInput
             className="flex items-center gap-1 bg-secondary text-secondary-foreground px-3 py-1 rounded-md"
           >
             <span>{chord}</span>
-            <button
-              onClick={() => removeChord(index)}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {mode === "visual" ? (
-        <Card className="p-6">
-          <ChordWheel onChordSelect={addChord} />
-        </Card>
-      ) : (
-        <div className="flex gap-2">
-          <Input
-            value={currentChord}
-            onChange={(e) => {
-              const value = e.target.value
-              setCurrentChord(value)
-              setIsInputValid(validateChord(value))
-            }}
-            placeholder="Enter chord (e.g., Cmaj7)"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                addChord()
-              }
-            }}
-            className={cn(
-              !isInputValid && "border-destructive focus-visible:ring-destructive"
-            )}
-          />
-          <Button 
-            onClick={() => addChord()}
-            disabled={!isInputValid || !currentChord.trim()}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+            <X className="h-4 w-4" />
+          </button>
         </div>
-      )}
+      ))}
     </div>
-  )
-}
+
+    {mode === "visual" ? (
+      <Card className="p-6">
+        <ChordWheel onChordSelect={addChord} />
+      </Card>
+    ) : (
+      <div className="flex gap-2">
+        <Input
+          value={currentChord}
+          onChange={(e) => {
+            const value = e.target.value
+            setCurrentChord(value)
+            setIsInputValid(validateChord(value))
+          }}
+          placeholder="Enter chord (e.g., Cmaj7)"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              addChord()
+            }
+          }}
+          className={cn(
+            !isInputValid && "border-destructive focus-visible:ring-destructive"
+          )}
+        />
+        <Button
+          onClick={() => addChord()}
+          disabled={!isInputValid || !currentChord.trim()}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+    )}
+  </div>
+)
