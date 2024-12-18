@@ -8,10 +8,9 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useProgression } from "@/hooks/useProgression"
 
 interface ChordWheelProps {
-  onChordSelect: (chord: string) => void
 }
 
-export function ChordWheel({ onChordSelect }: ChordWheelProps) {
+export function ChordWheel({ }: ChordWheelProps) {
   const { addChord } = useProgression()
   const [selectedRoot, setSelectedRoot] = useState<string | null>(null)
   const [selectedQuality, setSelectedQuality] = useState<string | null>(null)
@@ -53,7 +52,6 @@ export function ChordWheel({ onChordSelect }: ChordWheelProps) {
     ["11"],        // Eleventh
     ["13"],        // Thirteenth
   ]
-
   // Update preview chord when selections change
   useEffect(() => {
     if (selectedRoot) {
@@ -103,7 +101,6 @@ export function ChordWheel({ onChordSelect }: ChordWheelProps) {
       }
     }
   }
-
   // Reset selections
   const handleReset = () => {
     setSelectedRoot(null)
@@ -140,7 +137,6 @@ export function ChordWheel({ onChordSelect }: ChordWheelProps) {
               fill="none"
             />
           )}
-          
           {/* Root notes ring - Always active */}
           <ChordWheelRing
             items={roots}
@@ -165,7 +161,7 @@ export function ChordWheel({ onChordSelect }: ChordWheelProps) {
                   selected={selectedQuality}
                   onSelect={handleQualitySelect}
                   ringType="quality"
-                  isActive={step !== 'root'}
+                  isActive={step === 'quality'}
                 />
               </motion.g>
             )}
@@ -190,7 +186,6 @@ export function ChordWheel({ onChordSelect }: ChordWheelProps) {
               </motion.g>
             )}
           </AnimatePresence>
-          
           {/* Center display */}
           <g className="text-center">
             {/* Step indicator */}

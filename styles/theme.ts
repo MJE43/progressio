@@ -66,6 +66,7 @@ export const theme = {
     slow: '300ms ease-in-out',
   },
   
+    
   spacing: {
     ringGap: 45,    // Increased gap between rings
     textPadding: 15, // Increased text padding

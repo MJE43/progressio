@@ -79,7 +79,7 @@ export function ProgressionDisplay() {
                             onClick={() => selectChord(index)}
                             className={cn(
                               "relative p-3 rounded-lg cursor-pointer transition-all",
-                              getFunctionColor(analysis?.harmonicFunction.primary || ''),
+                              getFunctionColor(analysis?.harmonicFunction.primary || 'unknown'),
                               selectedChordIndex === index && "ring-2 ring-primary",
                               connection && "border-2",
                               getVoiceLeadingColor(connection),
@@ -91,26 +91,21 @@ export function ProgressionDisplay() {
                                 <TooltipTrigger asChild>
                                   <div>
                                     <span className="text-lg font-medium">{chord.originalNotation}</span>
-                                    {analysis && (
-                                      <div className="mt-1 flex gap-1">
+                                    {analysis?.harmonicFunction && (
+                                      <div className="absolute -top-2 -right-2">
                                         <Badge variant="outline" className="text-xs">
                                           {analysis.harmonicFunction.primary}
                                         </Badge>
-                                        {analysis.harmonicFunction.secondary && (
-                                          <Badge variant="outline" className="text-xs">
-                                            {analysis.harmonicFunction.secondary}
-                                          </Badge>
-                                        )}
                                       </div>
                                     )}
                                   </div>
                                 </TooltipTrigger>
-                                {connection?.parallelMotion?.length > 0 && (
+                                {connection?.parallelMotion && connection.parallelMotion.length > 0 && (
                                   <TooltipContent>
                                     <div className="text-sm">
                                       <p className="font-semibold">Parallel Motions:</p>
                                       <ul className="list-disc list-inside">
-                                        {connection.parallelMotions.map((motion, i) => (
+                                        {connection.parallelMotion.map((motion: any, i: any) => (
                                           <li key={i}>{motion.type}</li>
                                         ))}
                                       </ul>
@@ -119,6 +114,16 @@ export function ProgressionDisplay() {
                                 )}
                               </Tooltip>
                             </TooltipProvider>
+                            {analysis?.patterns.length ? (
+                              <div className="absolute -bottom-2 left-0 right-0 flex justify-center gap-1">
+                                {analysis.patterns.map((pattern: any, i: React.Key | null | undefined) => (
+                                  <div
+                                    key={i}
+                                    className="w-1.5 h-1.5 rounded-full bg-primary"
+                                  />
+                                ))}
+                              </div>
+                            ) : null}
                           </div>
                         )}
                       </Draggable>
