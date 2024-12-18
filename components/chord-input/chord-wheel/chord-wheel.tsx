@@ -1,16 +1,18 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, MouseEvent } from "react"
 import { ChordWheelRing } from "./chord-wheel-ring"
 import { Button } from "@/components/ui/button"
 import { theme } from "@/styles/theme"
 import { motion, AnimatePresence } from "framer-motion"
+import { useProgression } from "@/hooks/useProgression"
 
 interface ChordWheelProps {
   onChordSelect: (chord: string) => void
 }
 
 export function ChordWheel({ onChordSelect }: ChordWheelProps) {
+  const { addChord } = useProgression()
   const [selectedRoot, setSelectedRoot] = useState<string | null>(null)
   const [selectedQuality, setSelectedQuality] = useState<string | null>(null)
   const [selectedExtension, setSelectedExtension] = useState<string | null>(null)
@@ -66,11 +68,7 @@ export function ChordWheel({ onChordSelect }: ChordWheelProps) {
   // Handle root selection
   const handleRootSelect = (root: string) => {
     if (selectedRoot === root) {
-      // Deselect if clicking the same root
-      setSelectedRoot(null)
-      setSelectedQuality(null)
-      setSelectedExtension(null)
-      setStep('root')
+      handleReset()
     } else {
       setSelectedRoot(root)
       setStep('quality')
@@ -80,7 +78,6 @@ export function ChordWheel({ onChordSelect }: ChordWheelProps) {
   // Handle quality selection
   const handleQualitySelect = (quality: string) => {
     if (selectedQuality === quality) {
-      // Deselect if clicking the same quality
       setSelectedQuality(null)
       setSelectedExtension(null)
       setStep('quality')
@@ -92,7 +89,19 @@ export function ChordWheel({ onChordSelect }: ChordWheelProps) {
 
   // Handle extension selection
   const handleExtensionSelect = (extension: string) => {
-    setSelectedExtension(selectedExtension === extension ? null : extension)
+    if (selectedExtension === extension) {
+      setSelectedExtension(null)
+    } else {
+      setSelectedExtension(extension)
+      
+      // Only add the chord when we have all selections and extension is clicked
+      if (selectedRoot && selectedQuality) {
+        const quality = selectedQuality === "major" ? "" : selectedQuality
+        const chord = `${selectedRoot}${quality}${extension}`
+        addChord(chord)
+        handleReset()
+      }
+    }
   }
 
   // Reset selections
@@ -100,13 +109,16 @@ export function ChordWheel({ onChordSelect }: ChordWheelProps) {
     setSelectedRoot(null)
     setSelectedQuality(null)
     setSelectedExtension(null)
+    setPreviewChord("")
     setStep('root')
   }
 
-  // Add the chord and reset selections
-  const handleAddChord = () => {
+  function handleAddChord(event: MouseEvent<HTMLButtonElement>): void {
     if (selectedRoot && selectedQuality) {
-      onChordSelect(previewChord)
+      const quality = selectedQuality === "major" ? "" : selectedQuality
+      const extension = selectedExtension || ""
+      const chord = `${selectedRoot}${quality}${extension}`
+      addChord(chord)
       handleReset()
     }
   }

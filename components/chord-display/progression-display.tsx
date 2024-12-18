@@ -1,7 +1,7 @@
 // /components/progression/ProgressionDisplay.tsx
 
 import React from 'react';
-import {  useProgression } from '@/hooks/useProgression';
+import { useProgression } from '@/hooks/useProgression';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,11 +13,18 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { useVoiceLeading } from '@/hooks/useVoiceLeading';
+import { ChordDefinition, ProgressionPattern, VoiceLeadingConnection } from '@/lib/theory/types';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 export function ProgressionDisplay() {
-  const { chords, selectedChordIndex, selectChord } = useProgression();
+  const { chords, selectedChordIndex, selectChord, moveChord } = useProgression();
   const { analysisForChord } = useAnalysis();
-  const { getSmoothnessScore, getParallelMotions } = useVoiceLeading();
+  const { connections } = useVoiceLeading();
+
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    moveChord(result.source.index, result.destination.index);
+  };
 
   const getFunctionColor = (primary: string) => {
     switch (primary) {
@@ -32,8 +39,9 @@ export function ProgressionDisplay() {
     }
   };
 
-  const getVoiceLeadingColor = (smoothness: number | null) => {
-    if (smoothness === null) return '';
+  const getVoiceLeadingColor = (connection: VoiceLeadingConnection | undefined) => {
+    if (!connection) return '';
+    const smoothness = connection.smoothness;
     if (smoothness > 0.8) return 'border-green-500';
     if (smoothness > 0.5) return 'border-yellow-500';
     return 'border-red-500';
@@ -45,93 +53,82 @@ export function ProgressionDisplay() {
         <div className="space-y-6">
           <h3 className="text-lg font-semibold">Progression Analysis</h3>
           
-          <div className="flex flex-wrap gap-2">
-            {chords.map((chord, index) => {
-              const analysis = analysisForChord(index);
-              const smoothness = getSmoothnessScore(index);
-              const parallelMotions = getParallelMotions(index);
-              
-              return (
-                <TooltipProvider key={index}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div 
-                        className={cn(
-                          "relative group cursor-pointer",
-                          "transition-all duration-200",
-                          selectedChordIndex === index && "scale-105"
-                        )}
-                        onClick={() => selectChord(index)}
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="chords" direction="horizontal">
+              {(provided) => (
+                <div 
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  className="flex flex-wrap gap-2"
+                >
+                  {chords.map((chord: ChordDefinition, index: number) => {
+                    const analysis = analysisForChord(index);
+                    const connection = index > 0 ? connections[index - 1] : undefined;
+
+                    return (
+                      <Draggable 
+                        key={`${chord.root}-${index}`} 
+                        draggableId={`${chord.root}-${index}`} 
+                        index={index}
                       >
-                        {/* Chord Display */}
-                        <div 
-                          className={cn(
-                            "px-4 py-2 rounded-md",
-                            getFunctionColor(analysis?.harmonicFunction.primary || 'unknown'),
-                            "border-2",
-                            getVoiceLeadingColor(smoothness)
-                          )}
-                        >
-                          <span className="font-medium">{chord.originalNotation}</span>
-                          
-                          {/* Function Badge */}
-                          {analysis?.harmonicFunction && (
-                            <div className="absolute -top-2 -right-2">
-                              <Badge variant="outline" className="text-xs">
-                                {analysis.harmonicFunction.primary}
-                              </Badge>
-                            </div>
-                          )}
-                          
-                          {/* Pattern Indicators */}
-                          {analysis?.patterns.length ? (
-                            <div className="absolute -bottom-2 left-0 right-0 flex justify-center gap-1">
-                              {analysis.patterns.map((pattern: any, i: React.Key | null | undefined) => (
-                                <div
-                                  key={i}
-                                  className="w-1.5 h-1.5 rounded-full bg-primary"
-                                />
-                              ))}
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-                    </TooltipTrigger>
-                    
-                    <TooltipContent>
-                      <div className="space-y-2 p-2">
-                        <div>
-                          <span className="font-semibold">Function: </span>
-                          {analysis?.harmonicFunction.primary}
-                          {analysis?.harmonicFunction.secondary && 
-                            ` (${analysis.harmonicFunction.secondary})`}
-                        </div>
-                        
-                        {smoothness !== null && (
-                          <div>
-                            <span className="font-semibold">Voice Leading: </span>
-                            {(smoothness * 100).toFixed(0)}% smooth
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            onClick={() => selectChord(index)}
+                            className={cn(
+                              "relative p-3 rounded-lg cursor-pointer transition-all",
+                              getFunctionColor(analysis?.harmonicFunction.primary || ''),
+                              selectedChordIndex === index && "ring-2 ring-primary",
+                              connection && "border-2",
+                              getVoiceLeadingColor(connection),
+                              snapshot.isDragging && "scale-105 shadow-lg"
+                            )}
+                          >
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div>
+                                    <span className="text-lg font-medium">{chord.originalNotation}</span>
+                                    {analysis && (
+                                      <div className="mt-1 flex gap-1">
+                                        <Badge variant="outline" className="text-xs">
+                                          {analysis.harmonicFunction.primary}
+                                        </Badge>
+                                        {analysis.harmonicFunction.secondary && (
+                                          <Badge variant="outline" className="text-xs">
+                                            {analysis.harmonicFunction.secondary}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                </TooltipTrigger>
+                                {connection?.parallelMotion?.length > 0 && (
+                                  <TooltipContent>
+                                    <div className="text-sm">
+                                      <p className="font-semibold">Parallel Motions:</p>
+                                      <ul className="list-disc list-inside">
+                                        {connection.parallelMotions.map((motion, i) => (
+                                          <li key={i}>{motion.type}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  </TooltipContent>
+                                )}
+                              </Tooltip>
+                            </TooltipProvider>
                           </div>
                         )}
-                        
-                        {parallelMotions.length > 0 && (
-                          <div className="text-yellow-500">
-                            Warning: {parallelMotions.map(m => m.type).join(', ')}
-                          </div>
-                        )}
-                        
-                        {analysis?.patterns.map((pattern: { type: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | React.PromiseLikeOfReactNode | null | undefined; }, i: React.Key | null | undefined) => (
-                          <div key={i} className="text-sm text-muted-foreground">
-                            Part of: {pattern.type} pattern
-                          </div>
-                        ))}
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              );
-            })}
-          </div>
+                      </Draggable>
+                    );
+                  })}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
         </div>
       </CardContent>
     </Card>

@@ -7,6 +7,8 @@ import { Plus, X } from "lucide-react"
 import { ModeSwitch } from "./chord-input/mode-switch"
 import { ChordWheel } from "./chord-input/chord-wheel/chord-wheel"
 import { Card } from "./ui/card"
+import { ChordParser } from "@/lib/theory/parser"
+import { cn } from "@/lib/utils"
 
 interface ChordInputProps {
   chordProgression: string[]
@@ -16,11 +18,24 @@ interface ChordInputProps {
 export function ChordInput({ chordProgression, setChordProgression }: ChordInputProps) {
   const [mode, setMode] = useState<"visual" | "text">("visual")
   const [currentChord, setCurrentChord] = useState("")
+  const [isInputValid, setIsInputValid] = useState(true)
+
+  const validateChord = (chord: string): boolean => {
+    if (!chord.trim()) return true
+    try {
+      ChordParser.parse(chord)
+      return true
+    } catch (error) {
+      return false
+    }
+  }
 
   const addChord = (chord: string = currentChord) => {
-    if (chord.trim()) {
-      setChordProgression([...chordProgression, chord.trim()])
+    const trimmedChord = chord.trim()
+    if (trimmedChord && validateChord(trimmedChord)) {
+      setChordProgression([...chordProgression, trimmedChord])
       setCurrentChord("")
+      setIsInputValid(true)
     }
   }
 
@@ -60,15 +75,25 @@ export function ChordInput({ chordProgression, setChordProgression }: ChordInput
         <div className="flex gap-2">
           <Input
             value={currentChord}
-            onChange={(e) => setCurrentChord(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value
+              setCurrentChord(value)
+              setIsInputValid(validateChord(value))
+            }}
             placeholder="Enter chord (e.g., Cmaj7)"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 addChord()
               }
             }}
+            className={cn(
+              !isInputValid && "border-destructive focus-visible:ring-destructive"
+            )}
           />
-          <Button onClick={() => addChord()}>
+          <Button 
+            onClick={() => addChord()}
+            disabled={!isInputValid || !currentChord.trim()}
+          >
             <Plus className="h-4 w-4" />
           </Button>
         </div>

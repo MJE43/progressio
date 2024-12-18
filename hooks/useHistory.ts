@@ -1,24 +1,17 @@
-import { useProgressionStore, ProgressionState } from "@/lib/store/progression";
+import { useHistoryStore } from "@/lib/store/historyStore";
 
 export function useHistory() {
-  const {
-      canUndo,
-      canRedo,
-      undo,
-      redo
-  } = useProgressionStore(
-      (state: ProgressionState) => ({
-          canUndo: state.history.past.length > 0,
-          canRedo: state.history.future.length > 0,
-          undo: state.undo,
-          redo: state.redo
-      })
-  );
+    const {
+        past,
+        future,
+        undo,
+        redo
+    } = useHistoryStore();
 
-  return {
-      canUndo,
-      canRedo,
-      undo,
-      redo
-  };
+    return {
+        canUndo: past.length > 0,
+        canRedo: future.length > 0,
+        undo,
+        redo
+    };
 }

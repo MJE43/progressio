@@ -1,8 +1,8 @@
 // /lib/hooks/useProgression.ts
 
 import { useCallback, useMemo } from 'react';
-import { useProgressionStore, type ProgressionState } from '@/lib/store/progression';
-import { ChordDefinition, HarmonicFunction, ProgressionPattern } from '@/lib/theory/types';
+import { useChordStore } from '@/lib/store/chordStore';
+import { ChordDefinition } from '@/lib/theory/types';
 import { ChordParser } from '@/lib/theory/parser';
 
 export function useProgression() {
@@ -14,17 +14,7 @@ export function useProgression() {
         updateChord,
         moveChord,
         selectChord
-    } = useProgressionStore(
-        (state: ProgressionState) => ({
-            chords: state.chords,
-            selectedChordIndex: state.selectedChordIndex,
-            addChord: state.addChord,
-            removeChord: state.removeChord,
-            updateChord: state.updateChord,
-            moveChord: state.moveChord,
-            selectChord: state.selectChord
-        })
-    );
+    } = useChordStore();
 
     const currentChord = useMemo(() => 
         selectedChordIndex !== null ? chords[selectedChordIndex] : null,
@@ -66,5 +56,3 @@ export function useProgression() {
         selectChord
     };
 }
-
-

@@ -1,12 +1,12 @@
 // /lib/hooks/useVoiceLeading.ts
 
-import { ProgressionState, useProgressionStore } from '@/lib/store/progression';
+import { useChordStore } from '@/lib/store/chordStore';
 import { ChordAnalyzer } from '@/lib/theory/analyzer';
 import { VoiceLeadingConnection } from '@/lib/theory/types';
 import { useMemo, useCallback } from 'react';
 
 export function useVoiceLeading() {
-    const chords = useProgressionStore((state: ProgressionState) => state.chords);
+    const chords = useChordStore((state) => state.chords);
 
     const connections = useMemo(() => {
         const result: VoiceLeadingConnection[] = [];

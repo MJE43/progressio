@@ -1,7 +1,8 @@
 // /hooks/useAnalysis.ts
 
 import { useCallback, useMemo } from 'react';
-import { useProgressionStore, ProgressionState } from '@/lib/store/progression';
+import { useAnalysisStore } from '@/lib/store/analysisStore';
+import { useChordStore } from '@/lib/store/chordStore';
 import { ProgressionPattern } from '@/lib/theory/types';
 
 export function useAnalysis() {
@@ -11,17 +12,10 @@ export function useAnalysis() {
         detectedPatterns,
         keyConfidence,
         detectKey,
-        reanalyze,
-        selectedChordIndex
-    } = useProgressionStore((state: ProgressionState) => ({
-        currentKey: state.currentKey,
-        harmonicFunctions: state.harmonicFunctions,
-        detectedPatterns: state.detectedPatterns,
-        keyConfidence: state.keyConfidence,
-        detectKey: state.detectKey,
-        reanalyze: state.reanalyze,
-        selectedChordIndex: state.selectedChordIndex
-    }));
+        reanalyze
+    } = useAnalysisStore();
+
+    const selectedChordIndex = useChordStore((state) => state.selectedChordIndex);
 
     const analysisForChord = useCallback((index: number) => {
         return {
