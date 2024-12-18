@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { ChordDefinition } from '@/lib/theory/types';
-import { ChordParser } from '@/lib/theory/parser';
+import { ChordDefinition } from './../theory/types';
+import { ChordParser } from './../theory/parser';
 
 interface ChordState {
-    chords: ChordDefinition[];
+    chords: string[];
     selectedChordIndex: number | null;
     
     // Actions
@@ -23,14 +23,9 @@ export const useChordStore = create<ChordState>()(
                 selectedChordIndex: null,
 
                 addChord: (notation: string) => {
-                    try {
-                        const chord = ChordParser.parse(notation);
-                        set((state) => ({
-                            chords: [...state.chords, chord]
-                        }));
-                    } catch (error) {
-                        console.error('Failed to parse chord:', error);
-                    }
+                    set((state) => ({
+                        chords: [...state.chords, notation]
+                    }));
                 },
 
                 removeChord: (index: number) => set((state) => ({
@@ -39,16 +34,11 @@ export const useChordStore = create<ChordState>()(
                 })),
 
                 updateChord: (index: number, notation: string) => {
-                    try {
-                        const chord = ChordParser.parse(notation);
-                        set((state) => ({
-                            chords: state.chords.map((c, i) => 
-                                i === index ? chord : c
-                            )
-                        }));
-                    } catch (error) {
-                        console.error('Failed to parse chord:', error);
-                    }
+                    set((state) => ({
+                        chords: state.chords.map((c, i) => 
+                            i === index ? notation : c
+                        )
+                    }));
                 },
 
                 moveChord: (fromIndex: number, toIndex: number) => set((state) => {

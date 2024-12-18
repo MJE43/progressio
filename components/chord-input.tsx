@@ -16,7 +16,16 @@ export function ChordInput() {
   const { chords: chordProgression, addChord } = useProgression()
   const [mode, setMode] = useState<"visual" | "text">("visual")
   const [currentChord, setCurrentChord] = useState("")
+  const [isInputValid, setIsInputValid] = useState(true);
 
+    const validateChord = (chord: string) => {
+        try {
+            ChordParser.parse(chord);
+            return true;
+        } catch (e) {
+            return false
+        }
+    }
 
   return (
     <div className="space-y-6">
@@ -33,14 +42,13 @@ export function ChordInput() {
           >
             <span>{chord}</span>
             <X className="h-4 w-4" />
-          </button>
-        </div>
-      ))}
-    </div>
+          </div>
+        ))}
+      </div>
 
     {mode === "visual" ? (
       <Card className="p-6">
-        <ChordWheel onChordSelect={addChord} />
+        <ChordWheel onChordSelect={(chord) => addChord(chord)} />
       </Card>
     ) : (
       <div className="flex gap-2">
@@ -54,7 +62,10 @@ export function ChordInput() {
           placeholder="Enter chord (e.g., Cmaj7)"
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              addChord()
+              if (isInputValid && currentChord.trim()) {
+                addChord(currentChord)
+                setCurrentChord("")
+              }
             }
           }}
           className={cn(
@@ -62,7 +73,12 @@ export function ChordInput() {
           )}
         />
         <Button
-          onClick={() => addChord()}
+          onClick={() => {
+            if (isInputValid && currentChord.trim()) {
+              addChord(currentChord)
+              setCurrentChord("")
+            }
+          }}
           disabled={!isInputValid || !currentChord.trim()}
         >
           <Plus className="h-4 w-4" />
@@ -71,3 +87,4 @@ export function ChordInput() {
     )}
   </div>
 )
+}

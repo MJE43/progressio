@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, MouseEvent } from "react"
+import { useState, useEffect, MouseEvent, useCallback } from "react"
 import { ChordWheelRing } from "./chord-wheel-ring"
 import { Button } from "@/components/ui/button"
 import { theme } from "@/styles/theme"
@@ -86,6 +86,11 @@ export function ChordWheel({ onChordSelect }: ChordWheelProps) {
   }
 
   // Handle extension selection
+  const handleExtensionSelect = (extension: string) => {
+    if (selectedExtension === extension) {
+        setSelectedExtension(null)
+    } else {
+      setSelectedExtension(extension)
     }
   }
 
@@ -98,160 +103,16 @@ export function ChordWheel({ onChordSelect }: ChordWheelProps) {
     setStep('root')
   }
 
-  return (
-    <div className="space-y-8">
-      <div className="relative w-[600px] h-[600px] mx-auto bg-[#0A0A1A] rounded-lg p-6 shadow-lg max-w-[600px] max-h-[600px]">
-        <svg
-          viewBox="0 0 600 600"
-          className="w-full h-full"
-          style={{ backgroundColor: theme.colors.wheelBackground }}
-        >
-          {/* Selection path lines */}
-          {selectedRoot && (
-            <path
-              d={`M 300 300 L ${300 + 240 * Math.cos(roots.findIndex(r => r.includes(selectedRoot)) * (2 * Math.PI / 12) - Math.PI / 2)} ${300 + 240 * Math.sin(roots.findIndex(r => r.includes(selectedRoot)) * (2 * Math.PI / 12) - Math.PI / 2)}`}
-              stroke={theme.colors.selectionPath}
-              strokeWidth="2"
-              fill="none"
-            />
-          )}
-          {/* Root notes ring - Always active */}
-          <ChordWheelRing
-            items={roots}
-            radius={240}
-            selected={selectedRoot}
-            onSelect={handleRootSelect}
-            ringType="root"
-            isActive={true}
-          />
-          
-          {/* Quality ring - Active after root selection */}
-          <AnimatePresence>
-            {step !== 'root' && (
-              <motion.g
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <ChordWheelRing
-                  items={qualities}
-                  radius={170}
-                  selected={selectedQuality}
-                  onSelect={handleQualitySelect}
-                  ringType="quality"
-                  isActive={step === 'quality'}
-                />
-              </motion.g>
-            )}
-          </AnimatePresence>
-          
-          {/* Extension ring - Active after quality selection */}
-          <AnimatePresence>
-            {step === 'extension' && (
-              <motion.g
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <ChordWheelRing
-                  items={extensions}
-                  radius={100}
-                  selected={selectedExtension}
-                  onSelect={handleExtensionSelect}
-                  ringType="extension"
-                  isActive={step === 'extension'}
-                />
-              </motion.g>
-            )}
-          </AnimatePresence>
-          {/* Center display */}
-          <g className="text-center">
-            {/* Step indicator */}
-            <text
-              x="300"
-              y="260"
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fill={theme.colors.textSecondary}
-              className="text-lg font-medium"
-            >
-              {step === 'root' 
-                ? "Select Root Note" 
-                : step === 'quality'
-                  ? "Choose Quality"
-                  : "Add Extension"}
-            </text>
-            
-            {/* Current chord display */}
-            <text
-              x="300"
-              y="300"
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fill={theme.colors.textPrimary}
-              className="text-3xl font-bold"
-            >
-              {previewChord || "C"}
-            </text>
-            
-            {/* Optional text */}
-            {step === 'extension' && (
-              <text
-                x="300"
-                y="335"
-                textAnchor="middle"
-                dominantBaseline="middle"
-                fill={theme.colors.textSecondary}
-                className="text-sm italic"
-              >
-                (Optional)
-              </text>
-            )}
-            
-            {/* Reset button */}
-            {(selectedRoot || selectedQuality) && (
-              <g
-                onClick={handleReset}
-                className="cursor-pointer"
-                opacity={0.7}
-              >
-                <text
-                  x="300"
-                  y="370"
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  fill={theme.colors.textSecondary}
-                  className="text-sm"
-                >
-                  Click to Reset
-                </text>
-              </g>
-            )}
-          </g>
-        </svg>
-      </div>
-      
-      <Button
-        onClick={handleAddChord}
-        disabled={!selectedRoot || !selectedQuality}
-        className="w-full h-12 text-lg font-medium rounded-lg transition-all"
-        style={{
-          backgroundColor: theme.colors.buttonPrimary,
-          color: theme.colors.textPrimary,
-          opacity: (!selectedRoot || !selectedQuality) ? theme.opacity.disabled : 1,
-          boxShadow: `0 0 20px ${theme.colors.selectionGlow}`
-        }}
-      >
-  // Function to handle adding the chord
-  function handleAddChord(): void {
-    if (selectedRoot && selectedQuality) {
-      const quality = selectedQuality === "major" ? "" : selectedQuality
-      const extension = selectedExtension || ""
-      const chord = `${selectedRoot}${quality}${extension}`
-      onChordSelect(chord)
-      handleReset()
-    }
-  }
+    // Function to handle adding the chord
+    const handleAddChord = useCallback(() => {
+        if (selectedRoot && selectedQuality) {
+          const quality = selectedQuality === "major" ? "" : selectedQuality
+          const extension = selectedExtension || ""
+          const chord = `${selectedRoot}${quality}${extension}`
+          onChordSelect(chord)
+          handleReset()
+        }
+      }, [selectedRoot, selectedQuality, selectedExtension, onChordSelect, handleReset])
 
   return (
     <div className="space-y-8">
