@@ -40,6 +40,8 @@ export interface VoiceLeadingConnection {
     }[];
 }
 
+export type { ProgressionPattern } from './patterns';
+
 // /lib/theory/constants.ts
 export const NOTES: Note[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 export const ENHARMONIC_EQUIVALENTS: Record<Note, Note[]> = {
