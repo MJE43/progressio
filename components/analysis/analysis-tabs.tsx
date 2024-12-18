@@ -1,10 +1,9 @@
+// /components/analysis/analysis-tabs.tsx
+
 "use client"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { HarmonyAnalysis } from "./harmony-analysis"
-import { VoiceLeadingAnalysis } from "./voice-leading-analysis"
-import { RhythmAnalysis } from "./rhythm-analysis"
-import { PatternAnalysis } from "./pattern-analysis"
+import { AnalysisPanel } from "@/components/chord-analysis/AnalysisPanel"
 
 interface AnalysisTabsProps {
   chordProgression: string[]
@@ -20,16 +19,16 @@ export function AnalysisTabs({ chordProgression }: AnalysisTabsProps) {
         <TabsTrigger value="patterns">Patterns</TabsTrigger>
       </TabsList>
       <TabsContent value="harmony">
-        <HarmonyAnalysis chordProgression={chordProgression} />
+        <AnalysisPanel selectedAnalysisType="overview" />
       </TabsContent>
       <TabsContent value="voice-leading">
-        <VoiceLeadingAnalysis chordProgression={chordProgression} />
+        <AnalysisPanel selectedAnalysisType="voice-leading" />
       </TabsContent>
       <TabsContent value="rhythm">
-        <RhythmAnalysis chordProgression={chordProgression} />
+         <p className="text-center text-muted-foreground py-8">Rhythm analysis coming soon...</p>
       </TabsContent>
       <TabsContent value="patterns">
-        <PatternAnalysis chordProgression={chordProgression} />
+        <AnalysisPanel selectedAnalysisType="patterns" />
       </TabsContent>
     </Tabs>
   )
